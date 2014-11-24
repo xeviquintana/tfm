@@ -51,6 +51,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 					case BluetoothAdapter.STATE_OFF:
 						((Button)findViewById(R.id.btnBluetooth)).setText(R.string.ActivarBluetooth);
 						((Button)findViewById(R.id.btnBuscarDispositiu)).setEnabled(false);
+						buidarLlistaDispositius();
 						break;
 	
 					// Ences
@@ -60,9 +61,9 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 						
 						// llancem intent de solicitud de visibilitat bluetooth al qual afegim un
 						// parell clau-valor que indicara la duracio de l'estat, en aquest cas 120 segons
-//						Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-//						discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120);
-//						startActivity(discoverableIntent);
+						Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+						discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120);
+						startActivity(discoverableIntent);
 						
 						break;
 					default:
@@ -95,22 +96,32 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 				arrayAdapter = new BluetoothDeviceArrayAdapter(getBaseContext(), android.R.layout.simple_list_item_2, arrayDevices);
 				
 				lvDispositius.setAdapter(arrayAdapter);
-				int ndisp = arrayDevices.size();
-				if (ndisp > 0) {
-					Toast.makeText(getBaseContext(), "Fi de la cerca, he trobat: "+
-							(ndisp == 1 ? " 1 dispositiu" : ndisp + " dispositius"),
-							Toast.LENGTH_SHORT).show();
-				}
+				if (arrayDevices != null) {
+					int ndisp = arrayDevices.size();
+					if (ndisp > 0) {
+						Toast.makeText(getBaseContext(), "Fi de la cerca, he trobat: "+
+								(ndisp == 1 ? "1 dispositiu" : ndisp + " dispositius"),
+								Toast.LENGTH_SHORT).show();
+					}
+					else { //TODO: missatges del toast al fitxer strings.xml?
+						Toast.makeText(getBaseContext(), "Fi de la cerca, no he trobat cap dispositiu", Toast.LENGTH_SHORT).show();
+					}
+				}				
 				else {
-					Toast.makeText(getBaseContext(), "Fi de la cerca, no he trobat dispositius", Toast.LENGTH_SHORT).show();
+					Toast.makeText(getBaseContext(), "Fi de la cerca, no he trobat cap dispositiu", Toast.LENGTH_SHORT).show();
 				}
 				
 			}
 			else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
+				buidarLlistaDispositius();
 				Toast.makeText(getBaseContext(), "Començant cerca dispositius", Toast.LENGTH_SHORT).show();
-				arrayAdapter = new BluetoothDeviceArrayAdapter(getBaseContext(), android.R.layout.simple_list_item_2, arrayDevices);
-				lvDispositius.setAdapter(arrayAdapter);
 			}
+		}
+
+		private void buidarLlistaDispositius() {
+			// TODO Auto-generated method stub
+			if (arrayAdapter != null)
+				arrayAdapter.clear();
 		}
 	};
 	

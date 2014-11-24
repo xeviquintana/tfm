@@ -38,6 +38,13 @@ public class BluetoothDeviceArrayAdapter extends ArrayAdapter<Object> {
 		return (deviceList == null ? null : deviceList.get(position));
 	}
 	
+	@Override
+	public void clear() {
+		if (deviceList != null)
+			deviceList.clear();
+		
+	};
+	
 	@SuppressLint("ViewHolder")
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
