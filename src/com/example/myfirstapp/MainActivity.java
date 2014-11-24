@@ -10,6 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -122,6 +124,39 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 			// TODO Auto-generated method stub
 			if (arrayAdapter != null)
 				arrayAdapter.clear();
+		}
+	};
+	
+	// handler que obtindra la infromacio des de BluetoothService
+	private final Handler handler = new Handler() {
+		
+		@Override
+		public void handleMessage(Message msg) {
+			byte[] buffer = null;
+			String missatge = null;
+			
+			// atenem el tipus de missatge
+			switch(msg.what) {
+				// missatge de lectura: es mostra en el TextView
+				case BluetoothService.MSG_LLEGIR: {
+					buffer = (byte[])msg.obj;
+					missatge = new String(buffer, 0, msg.arg1);
+					tvMissatge.setText(missatge);
+					break;
+				}
+				
+				// missatge d'escriputra: es mostra en el Toast
+				case BluetoothService.MSG_ESCRIURE: {
+					buffer = (byte[])msg.obj;
+					missatge = new String(buffer);
+					missatge = "Enviant missatge: " + missatge;
+					Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
+					break;
+				}
+				
+				default: 
+					break;
+			}
 		}
 	};
 	
