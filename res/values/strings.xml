@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MainActivity</string>
+    <string name="DesactivarBluetooth">Desactivar BLUETOOTH</string>
+    <string name="ActivarBluetooth">Activar BLUETOOTH</string>
+    <string name="DescobrirDispositius">Descobrir dispositius</string>
+    <string name="DetectatDispositiu">Dispositiu detectat</string>
+</resources>
