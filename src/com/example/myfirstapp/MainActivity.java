@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements android.view.View.OnClickListener
@@ -34,6 +35,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 	private ArrayAdapter<?> arrayAdapter;
 	
 	private ListView lvDispositius;
+	private TextView tvMissatge;
 	
 	private static final int REQUEST_ENABLE_BT = 1;
 	
@@ -171,7 +173,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
         btnBuscarDispositiu = (Button)findViewById(R.id.btnBuscarDispositiu);
         btnBuscarDispositiu.setText(R.string.DescobrirDispositius);
         lvDispositius = (ListView)findViewById(R.id.lvDispositius);
-        
+        tvMissatge = (TextView)findViewById(R.id.tvMissatge);
         configurarAdaptadorBluetooth();
         registrarEventosBluetooth();
     }

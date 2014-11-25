@@ -17,6 +17,13 @@
 	    android:layout_centerHorizontal="true"
 	    android:layout_below="@id/btnBluetooth"/>
 	
+	<TextView
+        android:id="@+id/tvMissatge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:layout_below="@id/btnBuscarDispositiu"/>
+	
 	<ListView 
 	    android:id="@+id/lvDispositius"
 	    android:layout_width="match_parent"
