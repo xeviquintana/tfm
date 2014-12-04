@@ -1,25 +1,39 @@
 package com.example.myfirstapp;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements android.view.View.OnClickListener
+public class MainActivity extends Activity implements android.view.View.OnClickListener, OnItemClickListener
 {
 	// boto de bluetooth
 	private Button btnBluetooth;
@@ -29,6 +43,9 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 	
 	// adaptador bluetooth del telefon
 	private BluetoothAdapter bAdapter;
+	
+	// servei de bluetooth
+	private BluetoothService servei;
 	
 	// llista de dispositius descoberts
 	private ArrayList<BluetoothDevice> arrayDevices;
@@ -100,20 +117,16 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 				arrayAdapter = new BluetoothDeviceArrayAdapter(getBaseContext(), android.R.layout.simple_list_item_2, arrayDevices);
 				
 				lvDispositius.setAdapter(arrayAdapter);
-				if (arrayDevices != null) {
-					int ndisp = arrayDevices.size();
-					if (ndisp > 0) {
-						Toast.makeText(getBaseContext(), "Fi de la cerca, he trobat: "+
-								(ndisp == 1 ? "1 dispositiu" : ndisp + " dispositius"),
-								Toast.LENGTH_SHORT).show();
-					}
-					else { //TODO: missatges del toast al fitxer strings.xml?
-						Toast.makeText(getBaseContext(), "Fi de la cerca, no he trobat cap dispositiu", Toast.LENGTH_SHORT).show();
-					}
-				}				
-				else {
-					Toast.makeText(getBaseContext(), "Fi de la cerca, no he trobat cap dispositiu", Toast.LENGTH_SHORT).show();
-				}
+				int ndisp = (arrayDevices != null ? arrayDevices.size() : 0); 
+				
+				//TODO: missatges del toast al fitxer strings.xml?
+				if (ndisp == 1) 
+					Toast.makeText(getBaseContext(), "Fi de la cerca, he trobat: 1 dispositiu" , Toast.LENGTH_SHORT).show();
+				else if (ndisp > 1) 
+					Toast.makeText(getBaseContext(), "Fi de la cerca, he trobat: " + ndisp + " dispositius", Toast.LENGTH_SHORT).show();
+				else 
+					Toast.makeText(getBaseContext(), "Fi de la cerca, no he trobat cap dispositiu",	Toast.LENGTH_SHORT).show();
+				
 				
 			}
 			else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
@@ -142,9 +155,42 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 				// missatge de lectura: es mostra en el TextView
 				case BluetoothService.MSG_LLEGIR: {
 					buffer = (byte[])msg.obj;
+					
 					missatge = new String(buffer, 0, msg.arg1);
 					tvMissatge.setText(missatge);
-					break;
+
+//					final File f = new File(Environment.getDataDirectory() + "/" + System.currentTimeMillis()
+//		                    + ".txt");
+//
+//
+//			          File dirs = new File(f.getParent());
+//	
+//			          if (!dirs.exists())
+//			             dirs.mkdirs();
+//			          FileOutputStream fos;
+//			          BufferedOutputStream bos = null;
+//			          try {
+//						f.createNewFile();
+//						fos = new FileOutputStream(f);
+//				        bos = new BufferedOutputStream(fos);
+//				        bos.write(buffer, 0, buffer.length);
+//				        bos.flush();
+//					} catch (IOException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					} finally {
+//						try {
+//							bos.close();
+//						} catch (IOException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//					}
+//	
+	
+			          
+					
+			          break;
 				}
 				
 				// missatge d'escriputra: es mostra en el Toast
@@ -193,11 +239,19 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
     	if (bAdapter.isEnabled()) {
     		btnBluetooth.setText(R.string.DesactivarBluetooth);
     		btnBuscarDispositiu.setEnabled(true);
+    		if (servei == null) {
+				servei = new BluetoothService(this, handler, bAdapter);
+			}
+			else {
+				servei.finalitzarServei();
+				servei.iniciarServei();
+			}
     	}
     	else {
     		btnBluetooth.setText(R.string.ActivarBluetooth);
     		btnBuscarDispositiu.setEnabled(false);
     	}
+    	
     }
     
     private void registrarEventosBluetooth() {
@@ -205,7 +259,8 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 		// els diferents canvis que volem rebre
     	btnBluetooth.setOnClickListener(this);
     	btnBuscarDispositiu.setOnClickListener(this);
-
+    	lvDispositius.setOnItemClickListener(this);
+    	
 		IntentFilter filtre = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 		this.registerReceiver(bReceiver, filtre);
 		
@@ -277,6 +332,13 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 			{
 				btnBluetooth.setText(R.string.DesactivarBluetooth);
 				btnBuscarDispositiu.setEnabled(true);
+				if (servei == null) {
+					servei = new BluetoothService(this, handler, bAdapter);
+				}
+				else {
+					servei.finalitzarServei();
+					servei.iniciarServei();
+				}
 				break;
 			}
 			default:
@@ -292,5 +354,67 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 		super.onDestroy();
 		this.unregisterReceiver(bReceiver);
 	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
+		// El ListView te un adaptador de tipo BluetoothDeviceArrayAdapter.
+		// Invoquem el metodo getItem() de l'adaptador per rebre el dispositiu bluetooth
+		// i fer la connexio
+		BluetoothDevice dispositivo = (BluetoothDevice)lvDispositius.getAdapter().getItem(position);
+		
+		AlertDialog dialog = crearDialegConnexio(getString(R.string.Connectar), 
+				getString(R.string.MsgConfirmarConnexio) + " " + dispositivo.getName() + "?", 
+				dispositivo.getAddress());
+		
+		dialog.show();
+		
+	}
+
+	private AlertDialog crearDialegConnexio(String titol, String missatge, final String direccio) {
+		// Instanciamos un nuevo AlertDialog Builder y le asociamos titulo y mensaje
+    	AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+		alertDialogBuilder.setTitle(titol);
+		alertDialogBuilder.setMessage(missatge);
+
+		// Creamos un nuevo OnClickListener para el boton OK que realice la conexion
+		DialogInterface.OnClickListener listenerOk = new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				solicitarConnexio(direccio);
+			}
+		};
+		
+		// Creamos un nuevo OnClickListener para el boton Cancelar
+		DialogInterface.OnClickListener listenerCancelar = new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				return;
+			}
+		};
+		
+		// Asignamos los botones positivo y negativo a sus respectivos listeners 
+		alertDialogBuilder.setPositiveButton(R.string.Connectar, listenerOk);
+		alertDialogBuilder.setNegativeButton(R.string.Cancelar, listenerCancelar);
+		
+		return alertDialogBuilder.create();
+	}
+
+    public void solicitarConnexio(String direccio)
+    {
+    	Toast.makeText(this, "Connectant amb " + direccio, Toast.LENGTH_LONG).show();
+    	if(servei != null)
+    	{
+    		BluetoothDevice dispositiuRemot = bAdapter.getRemoteDevice(direccio);
+    		servei.solicitarConnexio(dispositiuRemot);
+    		servei.enviar("t'estimo!".getBytes());
+    	}
+    	else {
+    		Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
+    	}
+    }
+
 	
 }

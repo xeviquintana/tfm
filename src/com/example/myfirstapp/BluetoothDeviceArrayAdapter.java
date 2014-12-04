@@ -45,7 +45,6 @@ public class BluetoothDeviceArrayAdapter extends ArrayAdapter<Object> {
 		
 	};
 	
-	@SuppressLint("ViewHolder")
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		if((deviceList == null) || (context == null)) {

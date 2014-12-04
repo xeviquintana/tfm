@@ -5,4 +5,7 @@
     <string name="ActivarBluetooth">Activar BLUETOOTH</string>
     <string name="DescobrirDispositius">Descobrir dispositius</string>
     <string name="DetectatDispositiu">Dispositiu detectat</string>
+	<string name="Connectar">Connectar</string>
+    <string name="MsgConfirmarConnexio">Estàs segur de fer una connexió amb</string>
+    <string name="Cancelar">Cancel·lar</string>
 </resources>
