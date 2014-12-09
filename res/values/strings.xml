@@ -6,6 +6,12 @@
     <string name="DescobrirDispositius">Descobrir dispositius</string>
     <string name="DetectatDispositiu">Dispositiu detectat</string>
 	<string name="Connectar">Connectar</string>
+	<string name="Enviar">Enviar</string>
     <string name="MsgConfirmarConnexio">Estàs segur de fer una connexió amb</string>
     <string name="Cancelar">Cancel·lar</string>
+    <string name="EnviantMissatge">Enviant missatge</string>
+    <string name="ConnexioActual">Connexió actual:</string>
+    <string name="SenseConnexio">Connexió actual: SENSE CONNEXIÓ</string>   
+    <string name="Connectant">Connectant</string>   
+    
 </resources>

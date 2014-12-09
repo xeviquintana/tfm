@@ -3,6 +3,8 @@ package com.example.myfirstapp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
@@ -52,8 +54,8 @@ public class BluetoothService {
 		this.bAdapter = adapter;
 		this.estat = ESTAT_CAP;
 		
-		UUID_SEGUR = generarUUID();
-		UUID_INSEGUR = generarUUID();
+//		UUID_SEGUR = generarUUID();
+//		UUID_INSEGUR = generarUUID();
 	}
 	
 	public void setEstat(int estatConnectat) {
@@ -81,13 +83,13 @@ public class BluetoothService {
 	}
 	
 	private UUID generarUUID() {
-		final TelephonyManager tManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
-		final String deviceId = String.valueOf(tManager.getDeviceId());
-		final String simSerialNumber = tManager.getSimSerialNumber();
-		final String androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-		UUID uuid = new UUID(androidId.hashCode(), ((long)deviceId.hashCode() << 32) | simSerialNumber.hashCode());
-		uuid = new UUID((long)1000, (long)23);
-		
+//		final TelephonyManager tManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+//		final String deviceId = String.valueOf(tManager.getDeviceId());
+//		final String simSerialNumber = tManager.getSimSerialNumber();
+//		final String androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+//		UUID uuid = new UUID(androidId.hashCode(), ((long)deviceId.hashCode() << 32) | simSerialNumber.hashCode());
+		UUID uuid = new UUID((long)1000, (long)23);
+
 		return uuid;
 	}
 	
@@ -276,17 +278,35 @@ public class BluetoothService {
 			BluetoothSocket tmpSocket = null;
 			this.dispositiu = dispositiu;
 			
-			// obtinc un socket pel dispositiu amb el que es vol connectar
 			try {
-				tmpSocket = dispositiu.createRfcommSocketToServiceRecord(UUID_SEGUR);
-			} catch (IOException e) {
-				Log.e(TAG, "FilClient.FilClient(): error a l'obrir el socket", e);
+				Method m = dispositiu.getClass().getMethod("createRfcommSocketToServiceRecord", new Class[] { UUID.class });
+				tmpSocket = (BluetoothSocket) m.invoke(dispositiu, UUID_SEGUR);
+				
+			} catch (NoSuchMethodException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			
+			if (tmpSocket != null) {
+				debug("filcient: constructor; ", "socket: "+tmpSocket.getRemoteDevice().getName());
+				debug("filcient: constructor; ", "dispositiu: "+dispositiu.getName());
+			}
+			
 			socket = tmpSocket;
 		}
 		
 		public void run() {
 			setName("FilClient");
+			debug("FilClient.run()","iniciant metode");
 			if (bAdapter.isDiscovering()) 
 				bAdapter.cancelDiscovery();
 			
@@ -295,9 +315,14 @@ public class BluetoothService {
 				setEstat(ESTAT_FENT_CONNEXIO);
 			}
 			catch (IOException e) {
-				Log.e(TAG, "FilClient.run(): socket.connect(): error fent la connexio", e);
+				Log.e(TAG, "FilClient.run(): socket.connect(): error fent la connexio: "+e.getStackTrace(), e);
+				try {
+					socket.close();
+				} catch (IOException inner) {
+					Log.e(TAG, "FilClient.run(): error tancant el socket", inner);
+				}
+				setEstat(ESTAT_CAP);
 			}
-			setEstat(ESTAT_CAP);
 			
 			// reiniciem el fil client ja que no el necessitarem mes
 			synchronized (BluetoothService.this) {
@@ -353,7 +378,6 @@ public class BluetoothService {
 			byte[] buffer = new byte[1024];
 			int bytes;
 			setEstat(ESTAT_CONNECTAT);
-			
 			// mentres es mantingui la conexxio, el fil es mante en espera ocupat llegint el flux d'entrada
 			while(true) {
 				try{
@@ -366,7 +390,7 @@ public class BluetoothService {
 					handler.obtainMessage(MSG_LLEGIR, bytes, -1, buffer).sendToTarget();
 				}
 				catch(IOException e) {
-					Log.e(TAG, "FilConnexio.run(): error al fer la lectura", e);
+					//Log.e(TAG, "FilConnexio.run(): error al fer la lectura", e);
 				}
 			}
 		}
