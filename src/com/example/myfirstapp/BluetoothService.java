@@ -26,7 +26,7 @@ public class BluetoothService {
 	
 	public static final String NOM_SEGUR = "BluetoothServiceSecure";
 	public static final String NOM_INSEGUR = "BluetoothServiceInsecure";
-	public static UUID UUID_SEGUR; //= UUID.fromString("org.danigarcia.examples.bluetooth.BluetoothService.Secure");
+	public static UUID UUID_SEGUR = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	public static UUID UUID_INSEGUR; //= UUID.fromString("org.danigarcia.examples.bluetooth.BluetoothService.Insecure");
 
 	public static final int ESTAT_CAP = 0;
@@ -179,12 +179,14 @@ public class BluetoothService {
 		
 		synchronized (this) {
 			if(estat != ESTAT_CONNECTAT) {
+				debug("enviar():", "estat no es connectat. ES: " + estat);
 				return -1;
 			}
+			else debug("enviar():", "estat es connectat");
 			tmpConnexio = filConnexio;
 		}
 		tmpConnexio.escriure(buffer);
-		
+		debug("enviar():", "s'ha escrit "+buffer.length+" bytes");
 		return buffer.length;
 	}
 	

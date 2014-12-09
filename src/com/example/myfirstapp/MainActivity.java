@@ -20,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,6 +52,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 	
 	private ListView lvDispositius;
 	private TextView tvMissatge;
+	private EditText txtMissatge;
 	
 	private static final int REQUEST_ENABLE_BT = 1;
 	
@@ -226,6 +228,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
         setContentView(R.layout.main);
         
         btnEnviar = (Button)findViewById(R.id.btnEnviar);
+    	txtMissatge = (EditText)findViewById(R.id.txtMissatge);
         btnBluetooth = (Button)findViewById(R.id.btnBluetooth);
         btnBuscarDispositiu = (Button)findViewById(R.id.btnBuscarDispositiu);
         lvDispositius = (ListView)findViewById(R.id.lvDispositius);
@@ -288,9 +291,11 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 			case R.id.btnEnviar:
 			{
 				if (servei != null) {
-					//TODO: canviar per textinput al main
-					servei.enviar("hello world".getBytes());
+					Log.d("intentant enviar", "enviant al servei");
+					servei.enviar(txtMissatge.getText().toString().getBytes());
+					txtMissatge.setText("");
 				}
+				else Log.d("intentant enviar", "el servei esta null");
 				break;
 			}
 		
@@ -424,7 +429,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 
     public void solicitarConnexio(String direccio)
     {
-    	Toast.makeText(this, "Connectant amb " + direccio, Toast.LENGTH_LONG).show();
+    	Log.d("solicitarConnexio", "Connectant amb " + direccio);
     	if(servei != null)
     	{
     		BluetoothDevice dispositiuRemot = bAdapter.getRemoteDevice(direccio);
