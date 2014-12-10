@@ -1,5 +1,6 @@
 package com.example.myfirstapp;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 
 import android.app.Activity;
@@ -14,13 +15,13 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,7 +39,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 	private Button btnBuscarDispositiu;
 	
 	// boto d'enviar
-	private Button btnEnviar;
+//	private Button btnEnviar;
 	
 	// adaptador bluetooth del telefon
 	private BluetoothAdapter bAdapter;
@@ -52,7 +53,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 	
 	private ListView lvDispositius;
 	private TextView tvMissatge;
-	private EditText txtMissatge;
+//	private EditText txtMissatge;
 	
 	private static final int REQUEST_ENABLE_BT = 1;
 	
@@ -75,6 +76,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 						((Button)findViewById(R.id.btnBluetooth)).setText(R.string.ActivarBluetooth);
 						((Button)findViewById(R.id.btnBuscarDispositiu)).setEnabled(false);
 						buidarLlistaDispositius();
+						tvMissatge.setText("");
 						break;	
 					}
 	
@@ -86,9 +88,9 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 						
 						// llancem intent de solicitud de visibilitat bluetooth al qual afegim un
 						// parell clau-valor que indicara la duracio de l'estat, en aquest cas 120 segons
-						Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-						discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 3600);
-						startActivity(discoverableIntent);
+//						Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+//						discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 3600);
+//						startActivity(discoverableIntent);
 						
 						break;
 					default:
@@ -135,7 +137,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 			}
 			else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
 				buidarLlistaDispositius();
-				Toast.makeText(getBaseContext(), "Començant cerca dispositius", Toast.LENGTH_SHORT).show();
+				tvMissatge.setText("");
 			}
 		}
 
@@ -160,18 +162,42 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 					buffer = (byte[])msg.obj;
 					
 					missatge = new String(buffer, 0, msg.arg1);
-					tvMissatge.setText(missatge);	          
+					tvMissatge.append(missatge);	  
+					tvMissatge.append("\n");
+			        break;
+				}
+				
+				// missatge de lectura: es mostra en el TextView
+				case BluetoothService.MSG_FITXER: {
+					buffer = (byte[])msg.obj;
+					Time now = new Time();
+					now.setToNow();
+					String filename = "factura-"+now.format2445()+".xml";
+					FileOutputStream outputStream;
+
+					try {
+					  outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+					  outputStream.write(buffer);
+					  outputStream.close();
+					  tvMissatge.append("Fitxer " + filename + " creat correctament a la memòria del telèfon\n");
+					  missatge = getString(R.string.facturaOk);
+					} catch (Exception e) {
+						missatge = getString(R.string.facturaNoOk);
+						e.printStackTrace();
+					}
+					Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
+					servei.finalitzarServei();
 			        break;
 				}
 				
 				// missatge d'escriputra: es mostra en el Toast
-				case BluetoothService.MSG_ESCRIURE: {
-					buffer = (byte[])msg.obj;
-					missatge = new String(buffer);
-					missatge = getString(R.string.EnviantMissatge) + ": " + missatge;
-					Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
-					break;
-				}
+//				case BluetoothService.MSG_ESCRIURE: {
+//					buffer = (byte[])msg.obj;
+//					missatge = new String(buffer);
+//					missatge = getString(R.string.EnviantMissatge) + ": " + missatge;
+//					Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
+//					break;
+//				}
 				
 				// missatge de canvi d'estat
 				case BluetoothService.MSG_CANVI_ESTAT: {
@@ -181,23 +207,28 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 							
 						case BluetoothService.ESTAT_CONNECTAT: {
 							missatge = getString(R.string.ConnexioActual) + " " + servei.getNomDispositiu();
-							Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
-							btnEnviar.setEnabled(true);
+							tvMissatge.append(missatge);
+							tvMissatge.append("\n");
+//							Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
+//							btnEnviar.setEnabled(true);
 							break;
 						}
 						
 						case BluetoothService.ESTAT_FENT_CONNEXIO: {
 							missatge = getString(R.string.Connectant);
+//							tvMissatge.append(missatge);
+//							tvMissatge.append("\n");
 							Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
-							btnEnviar.setEnabled(false);
+//							btnEnviar.setEnabled(false);
 							break;
 						}
 						
 						case BluetoothService.ESTAT_CAP: {
 							missatge = getString(R.string.SenseConnexio);
 							Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
-							tvMissatge.setText(missatge);
-							btnEnviar.setEnabled(false);
+//							tvMissatge.append(missatge);
+//							tvMissatge.append("\n");
+//							btnEnviar.setEnabled(false);
 							break;
 						}
 						
@@ -210,7 +241,9 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 				//missatge d'alerta: es mostrara en el Toast
 				case BluetoothService.MSG_ALERTA: {
 					missatge = msg.getData().getString(ALERTA);
-					Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
+					tvMissatge.append(missatge);
+					tvMissatge.append("\n");
+//					Toast.makeText(getApplicationContext(), missatge, Toast.LENGTH_SHORT).show();
 					break;
 				}
 				
@@ -227,8 +260,8 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        btnEnviar = (Button)findViewById(R.id.btnEnviar);
-    	txtMissatge = (EditText)findViewById(R.id.txtMissatge);
+//        btnEnviar = (Button)findViewById(R.id.btnEnviar);
+//    	txtMissatge = (EditText)findViewById(R.id.txtMissatge);
         btnBluetooth = (Button)findViewById(R.id.btnBluetooth);
         btnBuscarDispositiu = (Button)findViewById(R.id.btnBuscarDispositiu);
         lvDispositius = (ListView)findViewById(R.id.lvDispositius);
@@ -271,7 +304,7 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 		// registrem el BroadcastReceiver que instanciem previament per detectar
 		// els diferents canvis que volem rebre
     	
-    	btnEnviar.setOnClickListener(this);
+//    	btnEnviar.setOnClickListener(this);
     	btnBluetooth.setOnClickListener(this);
     	btnBuscarDispositiu.setOnClickListener(this);
     	lvDispositius.setOnItemClickListener(this);
@@ -288,16 +321,16 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 	public void onClick(View v) {
 		switch (v.getId()) {
 			// codi executat quan s'apreta el boto d'enviar un missatge
-			case R.id.btnEnviar:
-			{
-				if (servei != null) {
-					Log.d("intentant enviar", "enviant al servei");
-					servei.enviar(txtMissatge.getText().toString().getBytes());
-					txtMissatge.setText("");
-				}
-				else Log.d("intentant enviar", "el servei esta null");
-				break;
-			}
+//			case R.id.btnEnviar:
+//			{
+//				if (servei != null) {
+//					Log.d("intentant enviar", "enviant al servei");
+//					servei.enviar(txtMissatge.getText().toString().getBytes());
+//					txtMissatge.setText("");
+//				}
+//				else Log.d("intentant enviar", "el servei esta null");
+//				break;
+//			}
 		
 			// codi executat quan s'apreta el boto que s'encarrega d'activar o desactivar
 			// el bluetooth
@@ -407,6 +440,9 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
 			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
+				
+				if (tvMissatge.getText().length() > 0)
+					tvMissatge.setText("");
 				solicitarConnexio(direccio);
 			}
 		};
@@ -434,9 +470,6 @@ public class MainActivity extends Activity implements android.view.View.OnClickL
     	{
     		BluetoothDevice dispositiuRemot = bAdapter.getRemoteDevice(direccio);
     		servei.solicitarConnexio(dispositiuRemot);
-    		Toast.makeText(this, "connexio inicialitzada", Toast.LENGTH_SHORT).show();
-
-    		//servei.enviar("t'estimo!".getBytes());
     	}
     	else {
     		Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();

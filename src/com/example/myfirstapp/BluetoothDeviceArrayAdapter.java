@@ -2,7 +2,6 @@ package com.example.myfirstapp;
 
 import java.util.List;
 
-import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -22,6 +21,11 @@ public class BluetoothDeviceArrayAdapter extends ArrayAdapter<Object> {
 		// assignem els parametres als atributs
 		this.deviceList = objects;
 		this.context = context;
+	}
+	
+	@Override
+	public Context getContext() {
+		return context;
 	}
 	
 	@Override

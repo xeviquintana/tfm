@@ -2,9 +2,6 @@ package com.example.myfirstapp;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
@@ -13,7 +10,6 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Handler;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class BluetoothService {
@@ -21,12 +17,11 @@ public class BluetoothService {
 	private static final String TAG = "com.example.myfirstapp";
 	
 	private final Handler handler;
-	private final Context context;
 	private BluetoothAdapter bAdapter;
 	
 	public static final String NOM_SEGUR = "BluetoothServiceSecure";
 	public static final String NOM_INSEGUR = "BluetoothServiceInsecure";
-	public static UUID UUID_SEGUR = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+	public static UUID UUID_SEGUR = UUID.fromString("00001101-0000-1000-8000-00805FABCDEF");
 	public static UUID UUID_INSEGUR; //= UUID.fromString("org.danigarcia.examples.bluetooth.BluetoothService.Insecure");
 
 	public static final int ESTAT_CAP = 0;
@@ -36,6 +31,7 @@ public class BluetoothService {
 	
 	public static final int MSG_CANVI_ESTAT = 10;
 	public static final int MSG_LLEGIR = 11;
+	public static final int MSG_FITXER = 25;
 	public static final int MSG_ESCRIURE = 12;
 	public static final int MSG_ATENDRE_PETICIONS = 13;
 	public static final int MSG_ALERTA = 14;
@@ -49,7 +45,6 @@ public class BluetoothService {
 	public BluetoothService(Context context, Handler handler, BluetoothAdapter adapter) {
 		debug("BluetoothService():", "iniciant metode");
 		
-		this.context = context; 
 		this.handler = handler;
 		this.bAdapter = adapter;
 		this.estat = ESTAT_CAP;
@@ -80,17 +75,6 @@ public class BluetoothService {
 	{
 		if(DEBUG)
 			Log.d(TAG, metode + ": " + missatge);
-	}
-	
-	private UUID generarUUID() {
-//		final TelephonyManager tManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
-//		final String deviceId = String.valueOf(tManager.getDeviceId());
-//		final String simSerialNumber = tManager.getSimSerialNumber();
-//		final String androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-//		UUID uuid = new UUID(androidId.hashCode(), ((long)deviceId.hashCode() << 32) | simSerialNumber.hashCode());
-		UUID uuid = new UUID((long)1000, (long)23);
-
-		return uuid;
 	}
 	
 	// inicia el servei, creant un FilServidor que es dedicara a atendre les peticions de connexio
@@ -173,22 +157,22 @@ public class BluetoothService {
 	
 	// sincronitza l'objecte amb el fil FilConnexio i invoca el seu metode escriure()
 	// per enviar el missatge a traves del flux de sortida del socket
-	public int enviar(byte[] buffer) {
-		debug("enviar():", "iniciant metode");
-		FilConnexio tmpConnexio;
-		
-		synchronized (this) {
-			if(estat != ESTAT_CONNECTAT) {
-				debug("enviar():", "estat no es connectat. ES: " + estat);
-				return -1;
-			}
-			else debug("enviar():", "estat es connectat");
-			tmpConnexio = filConnexio;
-		}
-		tmpConnexio.escriure(buffer);
-		debug("enviar():", "s'ha escrit "+buffer.length+" bytes");
-		return buffer.length;
-	}
+//	public int enviar(byte[] buffer) {
+//		debug("enviar():", "iniciant metode");
+//		FilConnexio tmpConnexio;
+//		
+//		synchronized (this) {
+//			if(estat != ESTAT_CONNECTAT) {
+//				debug("enviar():", "estat no es connectat. ES: " + estat);
+//				return -1;
+//			}
+//			else debug("enviar():", "estat es connectat");
+//			tmpConnexio = filConnexio;
+//		}
+//		tmpConnexio.escriure(buffer);
+//		debug("enviar():", "s'ha escrit "+buffer.length+" bytes");
+//		return buffer.length;
+//	}
 	
 	// fil que fa, des de servidor, s'encarrega d'escoltar connexions entrantes i
 	// crear un fil que gestioni la connexio quan aixo passi
@@ -281,26 +265,9 @@ public class BluetoothService {
 			this.dispositiu = dispositiu;
 			
 			try {
-				Method m = dispositiu.getClass().getMethod("createRfcommSocketToServiceRecord", new Class[] { UUID.class });
-				tmpSocket = (BluetoothSocket) m.invoke(dispositiu, UUID_SEGUR);
-				
-			} catch (NoSuchMethodException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			if (tmpSocket != null) {
-				debug("filcient: constructor; ", "socket: "+tmpSocket.getRemoteDevice().getName());
-				debug("filcient: constructor; ", "dispositiu: "+dispositiu.getName());
+				tmpSocket = (BluetoothSocket) dispositiu.createRfcommSocketToServiceRecord(UUID_SEGUR);				
+			} catch (IOException e) {
+				debug("filclient: constructor; ", "no s'ha pogut iniciar la connexio");
 			}
 			
 			socket = tmpSocket;
@@ -352,7 +319,7 @@ public class BluetoothService {
 	private class FilConnexio extends Thread {
 		private final BluetoothSocket socket; // socket
 		private final InputStream inputStream; // fluxe d'entrada
-		private final OutputStream outputStream; // fluxe de sortida
+//		private final OutputStream outputStream; // fluxe de sortida
 		
 		public FilConnexio(BluetoothSocket socket) {
 			this.socket = socket;
@@ -361,18 +328,18 @@ public class BluetoothService {
 			// utilitzem variables temporals degut a que els atributs son declarats com a final
 			// i no seria possible assignar valors posteriorment si falla la connexio
 			InputStream tmpInputStream = null;
-			OutputStream tmpOutputStream = null;
+//			OutputStream tmpOutputStream = null;
 			
 			// obtinc els fluxes d'entrada i sortida del socket
 			try {
 				tmpInputStream = socket.getInputStream();
-				tmpOutputStream = socket.getOutputStream();
+//				tmpOutputStream = socket.getOutputStream();
 			} catch (IOException e) {
 				Log.e(TAG, "FilConnexio(): Error al obtenir fluxes");
 			}
 			
 			inputStream = tmpInputStream;
-			outputStream = tmpOutputStream;
+//			outputStream = tmpOutputStream;
 		}
 		
 		// metode principal del fil, encarregat de realitzar les lectures
@@ -389,7 +356,8 @@ public class BluetoothService {
 					// enviem la informacio a la activitat a traves del handler
 					// el metode handleMessage sera l'encarregat de rebre el missatge
 					// i mostrar les dades rebudes en el textview
-					handler.obtainMessage(MSG_LLEGIR, bytes, -1, buffer).sendToTarget();
+//					handler.obtainMessage(MSG_LLEGIR, bytes, -1, buffer).sendToTarget();
+					handler.obtainMessage(MSG_FITXER, bytes, -1, buffer).sendToTarget();
 				}
 				catch(IOException e) {
 					//Log.e(TAG, "FilConnexio.run(): error al fer la lectura", e);
@@ -397,18 +365,18 @@ public class BluetoothService {
 			}
 		}
 		
-		public void escriure(byte[] buffer) {
-			try {
-				// escrivim en el fluxe de sortida del socket
-				// el metode handlemessage sera l'encarregat de rebre 
-				// i mostrar les dades enviades en el Toast
-				outputStream.write(buffer);
-				handler.obtainMessage(MSG_ESCRIURE, -1, -1, buffer);
-			}
-			catch(IOException e) {
-				Log.e(TAG, "FilConnexio.escriure(): error al fer l'escriptura", e);
-			}
-		}
+//		public void escriure(byte[] buffer) {
+//			try {
+//				// escrivim en el fluxe de sortida del socket
+//				// el metode handlemessage sera l'encarregat de rebre 
+//				// i mostrar les dades enviades en el Toast
+//				outputStream.write(buffer);
+//				handler.obtainMessage(MSG_ESCRIURE, -1, -1, buffer);
+//			}
+//			catch(IOException e) {
+//				Log.e(TAG, "FilConnexio.escriure(): error al fer l'escriptura", e);
+//			}
+//		}
 		
 		public void cancelarConexion() {
 			debug("cancelarConnexio()", "Iniciant metode");

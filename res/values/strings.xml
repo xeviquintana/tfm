@@ -12,6 +12,7 @@
     <string name="EnviantMissatge">Enviant missatge</string>
     <string name="ConnexioActual">Connexió actual:</string>
     <string name="SenseConnexio">Connexió actual: SENSE CONNEXIÓ</string>   
-    <string name="Connectant">Connectant</string>   
-    
+    <string name="Connectant">Connectant</string>
+    <string name="facturaOk">Factura rebuda correctament</string>   
+    <string name="facturaNoOk">Error rebent factura</string>
 </resources>

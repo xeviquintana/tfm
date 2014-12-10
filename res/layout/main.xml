@@ -25,31 +25,30 @@
         android:text=""
         android:layout_below="@id/btnBuscarDispositiu"/>
 	
-	<EditText
-	    android:id="@+id/txtMissatge"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_alignTop="@+id/btnEnviar"
-	    android:layout_toLeftOf="@+id/btnEnviar"
-	    android:ems="10" >
+<!-- 	<EditText -->
+<!-- 	    android:id="@+id/txtMissatge" -->
+<!-- 	    android:layout_width="wrap_content" -->
+<!-- 	    android:layout_height="wrap_content" -->
+<!-- 	    android:layout_alignTop="@+id/btnEnviar" -->
+<!-- 	    android:layout_toLeftOf="@+id/btnEnviar" -->
+<!-- 	    android:ems="10" > -->
+<!-- 	    <requestFocus /> -->
+<!-- 	</EditText> -->
 
-	    <requestFocus />
-	</EditText>
-
-	<Button
-	    android:id="@+id/btnEnviar"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_alignParentRight="true"
-	    android:layout_below="@+id/tvMissatge"
-	    android:layout_marginRight="15dp"
-	    android:enabled="false"
-	    android:text="@string/Enviar" />
+<!-- 	<Button -->
+<!-- 	    android:id="@+id/btnEnviar" -->
+<!-- 	    android:layout_width="wrap_content" -->
+<!-- 	    android:layout_height="wrap_content" -->
+<!-- 	    android:layout_alignParentRight="true" -->
+<!-- 	    android:layout_below="@+id/tvMissatge" -->
+<!-- 	    android:layout_marginRight="15dp" -->
+<!-- 	    android:enabled="false" -->
+<!-- 	    android:text="@string/Enviar" /> -->
 	
-	<ListView 
+	<ListView
 	    android:id="@+id/lvDispositius"
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
-	    android:layout_below="@id/btnEnviar"/>
+	    android:layout_below="@id/tvMissatge" />
 	
 </RelativeLayout>
